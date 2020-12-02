@@ -1,5 +1,2 @@
-
 public class user {
-    youpi !
-
 }

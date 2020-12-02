@@ -1,4 +1,2 @@
 public class chat {
-    youpi !
-
 }
