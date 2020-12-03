@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.System;
 
-public class Historique {
+public class History {
     // Indicates where the history file is saved
     private String savePath = "./saved_messages.csv";
     
@@ -76,6 +77,10 @@ public class Historique {
         return conv;
     }
     
+    // Add a message to the list of messages
+    public void addMessage(Message m) {
+        this.messages.add(m);
+    }
 
     // Getters + Setters
     public void setSavePath(String path) {

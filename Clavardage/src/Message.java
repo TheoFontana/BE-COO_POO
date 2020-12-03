@@ -35,6 +35,11 @@ public class Message {
             + content;
     }
 
+    // Add a message to an history
+    public void updateHistory(History h) {
+        h.addMessage(this);       
+    }
+
     // Getters + Setters
     public int getSrc() {
         return this.idSender;
