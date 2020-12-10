@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.System;
 
 // https://www.guru99.com/java-swing-gui.html
 public class GraphicalInterface {
@@ -18,8 +19,13 @@ public class GraphicalInterface {
     // ie send/receive messages
     private Chat chat;
 
-    public GraphicalInterface() {
+    // Reference to the user 
+    private User user;
+
+    public GraphicalInterface(User user) {
         
+        this.user = user;
+
         //Creating the Frame
         frame = new JFrame("Chat");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -36,6 +42,12 @@ public class GraphicalInterface {
             }
         });
         reset = new JButton("Reset");
+        reset.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                resetMessage(tf.getText());
+            }
+        });
+
         panel.add(label); // Components Added using Flow Layout
         panel.add(tf);
         panel.add(send);
@@ -53,5 +65,13 @@ public class GraphicalInterface {
     // Method executed when the user click on send
     public void sendMessage(String content) {
         // TODO
+        this.tf.setText("");
+        this.ta.append("[ME]> " + content + "\n");
     }
+
+    // Method executed when the user click on reset
+    public void sendMessage(String content) {
+        this.tf.setText("");
+    }
+
 }
