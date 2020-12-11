@@ -31,10 +31,11 @@ public class ClientHandler extends Thread {
             receiver = new Receiver(in);
             receiver.start();
 
+            receiver.join();
         } catch (Exception ex) {
             System.out.println("[ERROR] (ClientHandler) : " + ex);
         } finally {
-            System.out.println("[LOG] Client exited");
+            System.out.println("[LOG] Client " + this.clientSocket + " exited");
             try {
                 if (this.clientSocket != null) {
                     this.clientSocket.close();
@@ -79,7 +80,7 @@ public class ClientHandler extends Thread {
         public void run() {
             try {
                 buffer = in.readLine();
-                while (buffer != null) {
+                while (!buffer.equals("Close connection")) {
                     System.out.println("[LOG] Received : " + buffer);
                     buffer = in.readLine();
                 }

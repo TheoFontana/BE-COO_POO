@@ -31,10 +31,11 @@ public class ChatClient extends Thread {
             receiver = new Receiver(in);
             receiver.start();
 
+            receiver.join();
         } catch (Exception e) {
             System.out.println("[ERROR] (ChatClient) : " + e);
         } finally {
-            System.out.println("[LOG] Client exited");
+            System.out.println("[LOG] Client " + this.socket + " exited");
             try {
                 if (this.socket != null) {
                     this.socket.close();
@@ -70,7 +71,7 @@ public class ChatClient extends Thread {
     private class Receiver extends Thread {
         public String buffer;
         BufferedReader in;
-        
+
         public Receiver(BufferedReader in) {
             this.in = in;
         }
@@ -79,7 +80,7 @@ public class ChatClient extends Thread {
         public void run() {
             try {
                 buffer = in.readLine();
-                while (buffer != null) {
+                while (!buffer.equals("Close connection")) {
                     System.out.println("[LOG] Received : " + buffer);
                     buffer = in.readLine();
                 }
