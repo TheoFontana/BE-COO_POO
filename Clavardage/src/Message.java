@@ -1,4 +1,4 @@
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public class Message {
     // ID of the sender
@@ -6,7 +6,7 @@ public class Message {
     // ID of the receiver
     private int idReceiver;
     // Time at which the message was sent
-    private LocalTime sendTime;
+    private LocalDateTime sendTime;
     // Content of the message
     private String content;
 
@@ -15,6 +15,7 @@ public class Message {
         this.idSender = idSrc;
         this.idReceiver = idDest;
         this.content = content;
+        this.sendTime = LocalDateTime.now().withNano(0);
     }
 
     // Constructor overload to create a message from a csv
@@ -22,7 +23,7 @@ public class Message {
     public Message(String [] csvEntry) {
         this.idSender = Integer.parseInt(csvEntry[0]);
         this.idReceiver = Integer.parseInt(csvEntry[1]);
-        this.sendTime = LocalTime.parse(csvEntry[2]);
+        this.sendTime = LocalDateTime.parse(csvEntry[2]);
         this.content = csvEntry[3];
     }
 
@@ -49,7 +50,7 @@ public class Message {
         return this.idReceiver;
     }
 
-    public LocalTime getTimeStamp(){
+    public LocalDateTime getTimeStamp(){
         return this.sendTime;
     }
 }

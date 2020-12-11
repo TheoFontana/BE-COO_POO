@@ -21,21 +21,22 @@ public class History {
         String splitBy = ",";
         BufferedReader br = null;
         try {
+            System.out.println("[LOG] Loading history...");
             br = new BufferedReader(new FileReader(savePath));   
             while ((line = br.readLine()) != null) {
                 messages.add(new Message(line.split(splitBy)));
             }
         } catch (FileNotFoundException e) {
-            System.out.println("No history on this system");
+            System.out.println("[WARNING] No history on this system");
         } catch (IOException e) {
-            System.out.println("IOException in reading history");
+            System.out.println("[ERROR] IOException in reading history");
         } finally {
             try {
                 if (br != null) {
                     br.close();
                 }
             } catch (IOException e) {
-                System.out.println("IOException in reading history");
+                System.out.println("[ERROR] IOException in reading history");
             }
         }
     } 
@@ -46,6 +47,7 @@ public class History {
     public void save() {
        BufferedWriter bw = null;
         try {
+            System.out.println("[LOG] Saving history...");
             bw = new BufferedWriter(new FileWriter(savePath, true));
             
             for (int i = 0; i < messages.size(); i++) {
@@ -53,14 +55,14 @@ public class History {
                 bw.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Could not save history");
+            System.out.println("[ERROR] Could not save history");
         } finally {
             try {
                 if (bw != null) {
                     bw.close();
                 }
             } catch (IOException e) {
-                System.out.println("IOException in saving history");
+                System.out.println("[ERROR] IOException in saving history");
             }
         }
     } 
@@ -86,5 +88,4 @@ public class History {
     public void setSavePath(String path) {
         this.savePath = path;
     }
-
 }

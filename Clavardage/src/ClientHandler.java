@@ -2,28 +2,28 @@ import java.io.*;
 import java.net.*;
 import java.lang.System;
 
-// Used to connect to another user and communicate with him
-public class ChatClient extends Thread {
-    // Socket to the remote application
-    private Socket socket;
-    // Thread to send data
+
+// Class to handle connection from another user
+public class ClientHandler extends Thread {
+    // Reference to the socket to communicate with the client
+    private Socket clientSocket = null;
+    // Thread to send data 
     private Sender sender;
     // Thread to receive data
     private Receiver receiver;
 
-    public ChatClient(String IP, int port) {
-        try {
-            this.socket = new Socket(IP, port); 
-            System.out.println("[LOG] Connected to " + IP + ":" + port);
-        } catch (IOException ex) {
-            System.out.println("[ERROR] Couldn't connect to " + IP + ":" + port);
-        }
+    // Constructor
+    public ClientHandler(Socket s) {
+        this.clientSocket = s;
     }
 
+    // Override of the run() method of class Thread
+    @Override 
     public void run() {
         try {
-            PrintWriter out = new PrintWriter(socket.getOutputStream());
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("[LOG] New Client : " + clientSocket);
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream());
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             sender = new Sender(out);
             sender.start();
@@ -31,13 +31,13 @@ public class ChatClient extends Thread {
             receiver = new Receiver(in);
             receiver.start();
 
-        } catch (Exception e) {
-            System.out.println("[ERROR] (ChatClient) : " + e);
+        } catch (Exception ex) {
+            System.out.println("[ERROR] (ClientHandler) : " + ex);
         } finally {
             System.out.println("[LOG] Client exited");
             try {
-                if (this.socket != null) {
-                    this.socket.close();
+                if (this.clientSocket != null) {
+                    this.clientSocket.close();
                 }
             } catch (IOException e) {
                 System.out.println("[ERROR] Couldn't close client socket");
@@ -70,11 +70,11 @@ public class ChatClient extends Thread {
     private class Receiver extends Thread {
         public String buffer;
         BufferedReader in;
-        
+
         public Receiver(BufferedReader in) {
             this.in = in;
         }
-        
+
         @Override
         public void run() {
             try {
@@ -98,5 +98,4 @@ public class ChatClient extends Thread {
     public String getBufferedData() {
         return this.receiver.buffer;
     }
-
 }
