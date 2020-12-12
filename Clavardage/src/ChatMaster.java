@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.lang.System;
 
 // Class implementing chat networking logic, receive tcp connections from 
@@ -14,12 +15,20 @@ public class ChatMaster extends Thread {
 	private boolean running;
 	// Number of simultaneously connected clients
 	private int connectedClients;
+	// Stores infos for all other users on the network
+	public ArrayList<ForeignUser> otherUsers;
+	// Object to discover other users and tell them we're available
+	private UDPDiscoverer discoverer;
+	// Port to use for the discoverer
+	private int discovererPort;
 	// Reference to the local user of the application
 	private User localUser = null;
 
 	// Constructor
-	public ChatMaster(int port) {
-		this.serverPort = port;
+	public ChatMaster(int serverPort, int discovererPort) {
+		this.serverPort = serverPort;
+		this.discovererPort = discovererPort;
+		this.otherUsers = new ArrayList<ForeignUser>();
 	}
 
 	// Override run() method of class Thread
@@ -31,6 +40,9 @@ public class ChatMaster extends Thread {
 	// Starts the server
 	private void startServer() {
 		try {
+			// Start discoverer
+			this.discoverer = new UDPDiscoverer(this.discovererPort, this);
+			this.discoverer.start();
 			// Start listening
 			this.serverSocket = new ServerSocket(this.serverPort);
 			System.out.println("[LOG] Started listening on port " + Integer.toString(this.serverPort));
@@ -69,6 +81,32 @@ public class ChatMaster extends Thread {
 
 	public User getLocalUser() {
 		return this.localUser;
+	}
+
+	// Add an other ForeignUser to the list that stores
+	// other users on the network
+	public void addUser(ForeignUser user) {
+		this.otherUsers.add(user);
+	}
+
+	// Check if the ForeignUser in argument is already stored
+	// in the list of other users
+	public boolean isUserInList(ForeignUser user) {
+		return this.otherUsers.contains(user);
+	}
+
+	// Returns informations about the current user in the format :
+	// ip:port:pseudo:id
+	public String getUserInfo() {
+		try {
+			String ip = InetAddress.getLocalHost().getHostAddress();
+			String id = Integer.toString(this.localUser.getId());
+			String pseudo = this.localUser.getPseudo();
+			return new String(ip + ":" + Integer.toString(this.serverPort) + ":" + pseudo + ":" + id);
+		} catch (UnknownHostException ex) {
+			System.out.println("[ERROR] Couldn't find host address");
+			return new String("");
+		}
 	}
 
 }

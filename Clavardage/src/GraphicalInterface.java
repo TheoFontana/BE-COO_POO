@@ -11,7 +11,7 @@ public class GraphicalInterface {
     private JFrame frame;
     private JPanel panel; 
     private JLabel label;
-    private JTextField tf; 
+    private JTextField tf;
     private JButton send;
     private JButton reset;
     private JTextArea ta;
@@ -99,12 +99,12 @@ public class GraphicalInterface {
             if (i != -1)
                 pane.remove(i);
         }
- 
     }
 
     // Method executed when the user click on send
     public void sendMessage(String content) {
         this.tf.setText("");
+        // show sent message on text area
         this.ta.append("[" + this.chat.getLocalUser().getPseudo() + " at " + LocalDateTime.now().withNano(0) + "]> " + content + "\n");
     }
 
