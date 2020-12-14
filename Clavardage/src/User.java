@@ -15,8 +15,8 @@ public class User {
     public User(int id, String pseudo, ChatMaster chat) {
         this.id = id;
         this.pseudo = pseudo;
-        this.history = new History();
-        this.history.load();
+        this.setHistory(new History());
+        this.getHistory().load();
         this.chat = chat;
     }
 
@@ -42,4 +42,12 @@ public class User {
     public int getId() {
         return this.id;
     }
+
+	public History getHistory() {
+		return history;
+	}
+
+	public void setHistory(History history) {
+		this.history = history;
+	}
 }

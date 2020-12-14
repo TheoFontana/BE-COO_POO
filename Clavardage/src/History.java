@@ -44,6 +44,7 @@ public class History {
 
     // Save messages history to a file in csv format from 
     // the messages List
+    
     public void save() {
        BufferedWriter bw = null;
         try {
