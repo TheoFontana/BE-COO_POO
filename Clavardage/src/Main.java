@@ -1,7 +1,8 @@
 public class Main {
     public static void main(String args[]) {
-        ChatMaster chat = new ChatMaster(1337, 1338);
+        ChatMaster chat = new ChatMaster();
         chat.start();
-        GraphicalInterface gui = new GraphicalInterface(chat);
+        //GUIFacade gui = new GUIFacade(chat);
+        //chat.setGuiFacade(gui);
     }
 }

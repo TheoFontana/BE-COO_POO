@@ -1,24 +1,29 @@
-// Represents a User that can be contacted with the
-// tool 
-public class ForeignUser {
+import java.net.*;
+
+// Represents a User that can be contacted with the tool 
+public class ForeignUser extends User {
     public String ip;
-    public int port;
-    public String pseudo;
-    public int id;
+    // If this socket is not null, it means that the local client 
+    // is connected to this ForeignUser
+    private Socket sock = null;
 
     // Constructor
-    public ForeignUser(String ip, int port, String pseudo, int id) {
+    public ForeignUser(int id, String pseudo, String ip) {
+        super(id, pseudo);
         this.ip = ip;
-        this.port = port;
-        this.pseudo = pseudo;
-        this.id = id;
+    }
+
+    // Override toString method
+    public String toString() {
+        return this.pseudo + ":" + this.ip;
     }
 
     // Create a new ForeignUser from a String with the following format
-    // ip:port:pseudo:id
+    // ip:pseudo:id
     public static ForeignUser fromString(String serialized) {
         String [] splitted = serialized.split(":");
-        return new ForeignUser(splitted[0], Integer.parseInt(splitted[1]), splitted[2], Integer.parseInt(splitted[3]));
+        if (splitted.length != 3) {return null;}
+        return new ForeignUser(Integer.parseInt(splitted[2]), splitted[1], splitted[0]);
     }
 
     // Override equals method to allow calling contains() on an ArrayList of these objects
@@ -33,7 +38,19 @@ public class ForeignUser {
         } 
         ForeignUser otherUser = (ForeignUser)other;
 
-        return this.ip.equals(otherUser.ip) && this.id == otherUser.id && this.pseudo.equals(otherUser.pseudo) && this.port == otherUser.port;
+        return this.ip.equals(otherUser.ip) && this.id == otherUser.id && this.pseudo.equals(otherUser.pseudo);
+    }
+
+    public Socket getSock() {
+        return this.sock;
+    }
+
+    public void setSock(Socket sock) {
+        this.sock = sock;
+    }
+
+    public String getIP() {
+        return this.ip;
     }
 
 }

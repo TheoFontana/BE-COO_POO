@@ -7,28 +7,24 @@ import java.lang.System;
 // other users, connect to other users
 public class ChatMaster extends Thread {
 	
-	// Entry socket for clients to connect to
-	private ServerSocket serverSocket;
-	// Port associated with the server socket
-	private int serverPort;
-	// Indicates if the server thread is running
-	private boolean running;
+    // Listens for other users to connect to this listener
+    private TCPListener tcplistener;
 	// Number of simultaneously connected clients
 	private int connectedClients;
 	// Stores infos for all other users on the network
 	public ArrayList<ForeignUser> otherUsers;
 	// Object to discover other users and tell them we're available
 	private UDPDiscoverer discoverer;
-	// Port to use for the discoverer
-	private int discovererPort;
 	// Reference to the local user of the application
-	private User localUser = null;
+	private LocalUser localUser = null;
 
+    // Reference to the GUIFacade object to call its methods
+    private GUIFacade gui;
+    
 	// Constructor
-	public ChatMaster(int serverPort, int discovererPort) {
-		this.serverPort = serverPort;
-		this.discovererPort = discovererPort;
+	public ChatMaster() {
 		this.otherUsers = new ArrayList<ForeignUser>();
+        this.gui = new GUIFacade(this);
 	}
 
 	// Override run() method of class Thread
@@ -39,49 +35,29 @@ public class ChatMaster extends Thread {
 
 	// Starts the server
 	private void startServer() {
-		try {
-			// Start discoverer
-			this.discoverer = new UDPDiscoverer(this.discovererPort, this);
-			this.discoverer.start();
-			// Start listening
-			this.serverSocket = new ServerSocket(this.serverPort);
-			System.out.println("[LOG] Started listening on port " + Integer.toString(this.serverPort));
-			this.running = true;
-			// Infinite loop to accept connections from other users
-			while(running){
-				Socket connection = this.serverSocket.accept();
-				// Create a new Client thread to handle this connection
-				new ClientHandler(connection).start();
-			}
-		} catch (IOException exception) {
-			System.out.println("[ERROR] Couldn't bind port " + Integer.toString(this.serverPort) + " for listening!");
-			System.exit(-1);
-		}
-	}
-
-	// Spawns a client to connect to another user
-	public ChatClient openConnection(String IP) {
-		return new ChatClient(IP, this.serverPort);
-	}
-
-	// Is the server running ?
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	// Stops the server
-	public void stopServer() {
-		this.running = false;
+        this.tcplistener = new TCPListener(this);
+        this.tcplistener.start();
+        this.discoverer = new UDPDiscoverer(this);
+        this.discoverer.start();
+        this.discoverer.getOtherUsers();
 	}
 
 	// Getters + Setters
-	public void setLocalUser(User user) {
+	public void setLocalUser(LocalUser user) {
 		this.localUser = user;
 	}
 
-	public User getLocalUser() {
+	public LocalUser getLocalUser() {
 		return this.localUser;
 	}
+
+    public void setGuiFacade(GUIFacade gui) {
+        this.gui = gui;
+    }
+    
+    public GUIFacade getGui() {
+        return this.gui;
+    }
 
 	// Add an other ForeignUser to the list that stores
 	// other users on the network
@@ -95,18 +71,92 @@ public class ChatMaster extends Thread {
 		return this.otherUsers.contains(user);
 	}
 
-	// Returns informations about the current user in the format :
-	// ip:port:pseudo:id
-	public String getUserInfo() {
-		try {
-			String ip = InetAddress.getLocalHost().getHostAddress();
-			String id = Integer.toString(this.localUser.getId());
-			String pseudo = this.localUser.getPseudo();
-			return new String(ip + ":" + Integer.toString(this.serverPort) + ":" + pseudo + ":" + id);
-		} catch (UnknownHostException ex) {
-			System.out.println("[ERROR] Couldn't find host address");
-			return new String("");
-		}
-	}
+    public String getUserInfo() {
+        if (this.localUser != null) {
+            return this.localUser.getPseudo(); 
+        } else {
+            return new String("");
+        }
+    } 
+    
+    // Send content to dest
+    public void sendMessage(String content, ForeignUser dest) {    
+        Socket sock = dest.getSock();
+        if (sock != null) {
+            try {
+                PrintWriter out = new PrintWriter(sock.getOutputStream());
+                out.println(content);
+                out.flush();
+                System.out.println("[LOG] in ChatMaster sendMessage : sending to " + dest + " : " + content);
+                this.updateHistory(new Message(0, dest.getId(), content));
+            } catch (Exception ex) {
+                System.out.println("[ERROR] in ChatMaster sendMessage : " + ex.toString());
+            }
+        } else {
+            try {
+                sock = new Socket(dest.getIP(), 1337);
+                new ClientHandler(sock, this, dest).start();
+                this.sendMessage(content, dest);
+            } catch (Exception ex) {
+                System.out.println("[ERROR] in ChatMaster sendMessage : " + ex.toString());
+            }
+        }
+    }
+    
+    public boolean isPseudoTaken(String pseudo) {
+        for (int i = 0; i < otherUsers.size(); i ++) {
+            if (otherUsers.get(i).getPseudo().equals(pseudo)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Search through the array otherUsers for a ForeignUser whose IP matches ip
+    public ForeignUser searchUserByIP(String ip) {
+        System.out.println("[LOG] in searchUserByIP : Searching for user with ip " + ip);
+        for (int i = 0; i < otherUsers.size(); i ++) {
+            if (otherUsers.get(i).getIP().equals(ip)) {
+                System.out.println("[LOG] in searchUserByIP : Found " + otherUsers.get(i));
+                return otherUsers.get(i);
+            }
+        }
+        return null;
+    }
+
+    public void updateHistory(Message m) {
+        System.out.println("[LOG] Adding " + m.serialize() + " to history");
+        if (this.localUser != null) {
+            this.localUser.getHistory().addMessage(m);
+            for (int i = 0; i < otherUsers.size(); i ++) {
+                System.out.println("[LOG] updateHistory : Setting " + otherUsers.get(i).getId() + " -> " + otherUsers.get(i).getPseudo());
+                this.localUser.getHistory().setAssociation(otherUsers.get(i).getId(), otherUsers.get(i).getPseudo());
+            }
+        }
+    }
+
+    // function called when clicking logout on the gui
+    public void logout() {
+        System.out.println("[LOG] in logout: Logging out");
+        for (int i = 0; i < otherUsers.size(); i ++) {
+            sendMessage("Close connection", otherUsers.get(i));
+        }
+        this.discoverer.disconnect();
+        this.otherUsers.clear();
+        if (this.localUser != null) {
+            this.localUser.getHistory().save();
+            this.localUser.getHistory().clearHistory();
+        }
+        this.localUser = null;
+        this.discover();
+    }
+
+    public void discover() {
+        this.discoverer.getOtherUsers();
+    }
+
+    public void removeForeignUser(ForeignUser user) {
+        this.otherUsers.remove(user);
+    }
 
 }

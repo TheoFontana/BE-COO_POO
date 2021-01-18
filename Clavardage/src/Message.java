@@ -33,7 +33,7 @@ public class Message {
         return Integer.toString(idSender) + "," 
             + Integer.toString(idReceiver) + "," 
             + sendTime.toString() + "," 
-            + content;
+            + content.replaceAll("\n", "");
     }
 
     // Add a message to an history
@@ -52,5 +52,9 @@ public class Message {
 
     public LocalDateTime getTimeStamp(){
         return this.sendTime;
+    }
+
+    public String getContent() {
+        return this.content;
     }
 }
