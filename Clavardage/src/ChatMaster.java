@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.lang.System;
+import java.util.regex.Pattern;
 
 // Class implementing chat networking logic, receive tcp connections from 
 // other users, connect to other users
@@ -17,6 +18,9 @@ public class ChatMaster extends Thread {
 	private UDPDiscoverer discoverer;
 	// Reference to the local user of the application
 	private LocalUser localUser = null;
+
+    // Communication with the PresenceManagementServer
+    public PMSInterface pmsinterface = null;
 
     // Reference to the GUIFacade object to call its methods
     private GUIFacade gui;
@@ -39,7 +43,7 @@ public class ChatMaster extends Thread {
         this.tcplistener.start();
         this.discoverer = new UDPDiscoverer(this);
         this.discoverer.start();
-        this.discoverer.getOtherUsers();
+        this.discover();
 	}
 
 	// Getters + Setters
@@ -93,12 +97,18 @@ public class ChatMaster extends Thread {
                 System.out.println("[ERROR] in ChatMaster sendMessage : " + ex.toString());
             }
         } else {
-            try {
-                sock = new Socket(dest.getIP(), 1337);
-                new ClientHandler(sock, this, dest).start();
-                this.sendMessage(content, dest);
-            } catch (Exception ex) {
-                System.out.println("[ERROR] in ChatMaster sendMessage : " + ex.toString());
+            if (!dest.isRemote()) {
+                try {
+                    sock = new Socket(dest.getIP(), 1337);
+                    new ClientHandler(sock, this, dest).start();
+                    this.sendMessage(content, dest);
+                } catch (Exception ex) {
+                    System.out.println("[ERROR] in ChatMaster sendMessage : " + ex.toString());
+                }
+            } else {
+                if (this.pmsinterface != null) {
+                    this.pmsinterface.openConnection(dest.getPseudo());
+                }
             }
         }
     }
@@ -118,6 +128,15 @@ public class ChatMaster extends Thread {
         for (int i = 0; i < otherUsers.size(); i ++) {
             if (otherUsers.get(i).getIP().equals(ip)) {
                 System.out.println("[LOG] in searchUserByIP : Found " + otherUsers.get(i));
+                return otherUsers.get(i);
+            }
+        }
+        return null;
+    }
+
+    public ForeignUser searchUserByPseudo(String pseudo) {
+        for (int i = 0; i < otherUsers.size(); i++) {
+            if (otherUsers.get(i).getPseudo().equals(pseudo)) {
                 return otherUsers.get(i);
             }
         }
@@ -151,12 +170,51 @@ public class ChatMaster extends Thread {
         this.discover();
     }
 
+    // Discover other users connected to the network
     public void discover() {
         this.discoverer.getOtherUsers();
+        // If the PMS was discovered by getOtherUsers, request outdoor users connected to the PMS
+        if (this.pmsinterface != null) {
+            this.pmsinterface.discoverUsers();
+        }
     }
 
     public void removeForeignUser(ForeignUser user) {
         this.otherUsers.remove(user);
     }
 
+    // Returns true if ip is valid
+    public boolean connectToPresenceManagementServer(String ip) {
+        Pattern PATTERN = Pattern.compile("^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
+        if (this.pmsinterface == null && PATTERN.matcher(ip).matches()) {
+            System.out.println("[LOG] in ChatMaster : connection to PresenceManagementServer @" + ip);
+            this.pmsinterface = new PMSInterface(ip);
+            this.pmsinterface.discoverUsers();
+            return true;
+        }
+        return false;
+    }
+
+    // Returns true if the newPseudo isn't taken
+    public boolean changeLocalUserPseudo(String newPseudo) {
+        if (isPseudoTaken(newPseudo)) {
+            System.out.println("[LOG] in ChatMaster : couldn't change pseudo to : " + newPseudo);
+            return false;
+        } else {
+            this.discoverer.changePseudo(newPseudo);
+            this.localUser.setPseudo(newPseudo);
+            System.out.println("[LOG] in ChatMaster : Changed pseudo to : " + newPseudo);
+            return true;
+        }
+    }
+
+    // Change pseudo of a ForeignUser
+    public void changeUserPseudo(String old, String newPseudo) {
+        ForeignUser user = this.searchUserByPseudo(old);       
+        if (user != null) {
+            user.setPseudo(newPseudo);
+            this.gui.foreignUserPseudoChange(old, newPseudo);
+            System.out.println("[LOG] in ChatMaster changeUserPseudo : changed pseudo of " + old + " to " + newPseudo);
+        }
+    }
 }

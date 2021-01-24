@@ -17,6 +17,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.JDialog;
 import java.lang.System;
 import java.time.LocalDateTime;
 
@@ -26,6 +27,8 @@ public class Window extends JFrame {
     private JButton connection_button;
     private JPanel connection_panel;
     private JButton deconnection_button;
+    private JButton connect_to_server_button;
+    private JButton change_pseudo_button;
     private JLabel local_user;
     private JPanel local_user_panel;
     private JTextArea message_area;
@@ -75,13 +78,15 @@ public class Window extends JFrame {
                     Window.this.setExtendedState(6);
                     // Defines user id with the hash of the ipAddress
                     try {
-                        //int id = InetAddress.getLocalHost().getHostAddress().hashCode();
                         Window.this.chat.setLocalUser(new LocalUser(0, pseudo, Window.this.chat));
                     } catch (Exception ex) {
                         System.out.println("[ERROR] in Window : " + ex.toString());
                         System.exit(-1);
                     }
                     Window.this.chat.discover();
+                    if (Window.this.chat.pmsinterface != null) {
+                        Window.this.chat.pmsinterface.register(pseudo);
+                    }
                     Window.this.nickname_field.setText("");
                     Window.this.messages_pane.setText(Window.this.chat.getLocalUser().getHistory().parseHistory());
                 }
@@ -123,6 +128,54 @@ public class Window extends JFrame {
                 Window.this.chat.logout();
             }
         });
+        this.connect_to_server_button = new JButton("Connect to server");
+        this.connect_to_server_button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JDialog d = new JDialog(Window.this, "Connect to server");
+                d.setSize(400, 100);
+                JPanel panel = new JPanel();
+                JLabel label = new JLabel("IP : ");
+                JTextField tf = new JTextField(20); // accepts upto 20 characters
+                JButton send = new JButton("Connect");
+                send.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        if (Window.this.chat.connectToPresenceManagementServer(tf.getText())) {
+                            d.dispose();
+                        }
+                    }
+                });
+                panel.add(label);
+                panel.add(tf);
+                panel.add(send);
+                d.add(panel);
+                d.setVisible(true);
+            }
+        });
+        this.change_pseudo_button = new JButton("Change pseudo");
+        this.change_pseudo_button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JDialog d = new JDialog(Window.this, "Change pseudo");
+                d.setSize(400, 100);
+                JPanel panel = new JPanel();
+                JLabel label = new JLabel("Pseudo : ");
+                JTextField tf = new JTextField(20); // accepts upto 20 characters
+                JButton send = new JButton("Change pseudo");
+                send.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        if (Window.this.chat.changeLocalUserPseudo(tf.getText())) {
+                            d.dispose();
+                        } else {
+                            label.setText("Taken !");
+                        }
+                    }
+                });
+                panel.add(label);
+                panel.add(tf);
+                panel.add(send);
+                d.add(panel);
+                d.setVisible(true);
+            }
+        });
         this.local_user_panel = new JPanel();
         this.local_user_panel.setLayout(new GridBagLayout());
         GridBagConstraints c_local_user_panel = new GridBagConstraints();
@@ -135,6 +188,12 @@ public class Window extends JFrame {
         c_local_user_panel.gridheight = 1;
         c_local_user_panel.gridwidth = 1;
         this.local_user_panel.add(this.deconnection_button, c_local_user_panel);
+        c_local_user_panel.gridx = 0;
+        c_local_user_panel.gridy = 1;
+        this.local_user_panel.add(this.connect_to_server_button, c_local_user_panel);
+        c_local_user_panel.gridx = 1;
+        c_local_user_panel.gridy = 1;
+        this.local_user_panel.add(this.change_pseudo_button, c_local_user_panel);
         this.message_area = new JTextArea(3, 30);
         this.send_button = new JButton("Send");
         this.send_button.addActionListener(new ActionListener() {

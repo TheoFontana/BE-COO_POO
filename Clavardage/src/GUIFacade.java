@@ -29,6 +29,10 @@ public class GUIFacade {
         this.w.foreignUsers_list.removeElement(foreignUser);
     }
 
+    public void foreignUserPseudoChange(String old, String newPseudo) {
+        this.w.messages_pane.setText(this.w.messages_pane.getText() + "\n" + ("[" + LocalDateTime.now().withNano(0) + "] : " + old + " changed his pseudo to " + newPseudo));
+    }
+
     public void messageReception(ForeignUser foreignUser, String text_message) {
         this.w.messages_pane.setText(this.w.messages_pane.getText() + "\n" + ("<-[" + LocalDateTime.now().withNano(0) + "@" + foreignUser.toString() + "] : " + text_message));
     }

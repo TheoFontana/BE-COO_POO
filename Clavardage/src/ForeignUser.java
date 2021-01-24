@@ -6,6 +6,9 @@ public class ForeignUser extends User {
     // If this socket is not null, it means that the local client 
     // is connected to this ForeignUser
     private Socket sock = null;
+    
+    // Is this user outside of the LAN ? Default : false
+    private boolean remote = false;
 
     // Constructor
     public ForeignUser(int id, String pseudo, String ip) {
@@ -51,6 +54,14 @@ public class ForeignUser extends User {
 
     public String getIP() {
         return this.ip;
+    }
+
+    public void setRemote() {
+        this.remote = true;
+    }
+
+    public boolean isRemote() {
+        return this.remote;
     }
 
 }
