@@ -71,6 +71,7 @@ public class Window extends JFrame {
                         Window.this.welcome_message.setText("Pseudo not available");
                         return;
                     }
+                    Window.this.welcome_message.setText("Welcome !");
                     Window.this.local_user.setText(Window.this.nickname_field.getText());
                     Window.this.getContentPane().remove(Window.this.connection_panel);
                     Window.this.getContentPane().add(Window.this.chat_panel);
