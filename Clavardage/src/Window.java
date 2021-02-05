@@ -200,7 +200,7 @@ public class Window extends JFrame {
         this.send_button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (!Window.this.foreignUsers_jlist.isSelectionEmpty() && !"".equals(Window.this.message_area.getText())) {
-                    String to_display = "->[" + LocalDateTime.now().withNano(0) + "@" + Window.this.foreignUsers_jlist.getSelectedValue().toString() + "] : " + Window.this.message_area.getText();
+                    String to_display = "->[" + LocalDateTime.now().withNano(0) + "@" + Window.this.foreignUsers_jlist.getSelectedValue().toString() + " (me)] : " + Window.this.message_area.getText();
                     if ("".equals(Window.this.messages_pane.getText())) {
                         Window.this.messages_pane.setText(to_display);
                     } else {
