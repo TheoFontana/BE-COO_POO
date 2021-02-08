@@ -161,6 +161,7 @@ public class ChatMaster extends Thread {
             sendMessage("Close connection", otherUsers.get(i));
         }
         this.discoverer.disconnect();
+        this.pmsinterface.unsubscribe();
         this.otherUsers.clear();
         if (this.localUser != null) {
             this.localUser.getHistory().save();

@@ -98,6 +98,15 @@ public class PresenceManagementServer extends Thread {
         }
     }
 
+    // Remove an user from the server
+    private void clientUnsubscribe(String ip) {
+        ManagedUser client = this.searchByIP(ip);
+        if (client != null) {
+            this.managedUsers.remove(client);
+            System.out.println("[LOG] Removed client " + client);
+        }
+    }
+
     // Called when a client requests all other connected users
     private void clientRequest(String ip) {
         try {
@@ -110,7 +119,25 @@ public class PresenceManagementServer extends Thread {
             this.serverSocket.send(packet);
             System.out.println("[LOG] in PMS clientRequest : indicating presence of " + toSend);
         } catch (Exception ex) {
-            System.out.println("[ERROR] in PMSInterface register : " + ex.toString());
+            System.out.println("[ERROR] in clientRequest : " + ex.toString());
+        }
+    }
+
+    // Send all connected users to all clients
+    private void updateAllClients() {
+        try {
+            String toSend = "PMSREG:";
+            for (int i = 0; i < managedUsers.size(); i++) {
+                toSend += (managedUsers.get(i).getPseudo() + "," + managedUsers.get(i).getIP() + ":");
+            }
+            byte[] dataToSend = toSend.getBytes("UTF-8");
+            for (int i = 0; i < managedUsers.size(); i++) {
+                DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, InetAddress.getByName(managedUsers.get(i).getIP()), 1338);
+                this.serverSocket.send(packet);
+                System.out.println("[LOG] in updateAllClients : indicating presence of " + toSend);
+            }
+        } catch (Exception ex) {
+            System.out.println("[ERROR] in updateAllClients : " + ex.toString());
         }
     }
 
@@ -154,6 +181,7 @@ public class PresenceManagementServer extends Thread {
                 System.out.println("[DEBUG] Detected SUB command");
                 if (arguments.length == 1) {
                     clientRegister(IPAddress, arguments[0]);
+                    updateAllClients();
                 }
                 break;
             case "PUB":
@@ -181,6 +209,11 @@ public class PresenceManagementServer extends Thread {
                 if (arguments.length == 1) {
                     clientOpen(IPAddress, arguments[0]);
                 }
+                break;
+            case "UNS":
+                // Client unsubscribe
+                System.out.println("[DEBUG] Detected UNS command");
+                clientUnsubscribe(IPAddress);
                 break;
             case "AYH":
                 // Probe sent to ask if the PMS is online (Are you here ?)

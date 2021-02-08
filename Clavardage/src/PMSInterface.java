@@ -56,4 +56,9 @@ class PMSInterface {
         this.sendData("NOT:"+newPseudo);
         System.out.println("[LOG] in PMSInterface : notified pseudo change : " + newPseudo);
     }
+    
+    // Unsubscribe from the PMS
+    public void unsubscribe() {
+        this.sendData("UNS");
+    }
 }
