@@ -11,7 +11,7 @@ En cas de déploiement sur des postes **macOS** ou **Windows**. Des instructions
 
 ## Instructions d'installation
 Les fichiers jar précompilés peuvent être trouvés dans `target/Clavardage/clavardage.jar` et dans `target/PresenceManagementServer/presencemanagementserver.jar`  
-Pour les recompiler à la main, le script `setup.sh` peut être utilisé, il suffit de l'exécuter sans aucun argument.  
+Pour les recompiler à la main, le script `setup.sh` (sur linux et macOS) ou `setup.bat` (sur Windows) peut être utilisé, il suffit de l'exécuter sans aucun argument.  
 **EDIT** : Ajout d'un makefile, la commande `make` peut être utilisée pour générer les fichiers jar.  
 Si vous voulez déployer le système sur des postes Windows ou macOS et que la version précompilée ne fonctionne pas, voici les commandes à exécuter :
 Créez les dossiers `target/Clavardage/` et `target/PresenceManagementServer/`
